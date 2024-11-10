@@ -1,12 +1,14 @@
 #include "./lib/circlebypoints.h"
 #include "ui_circlebypoints.h"
 #include "Eigen/Dense"
+#include "QMessageBox"
 CircleByPoints::CircleByPoints(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::CircleByPoints)
 {
     ui->setupUi(this);
-    connect(ui->m_okBtn, &QPushButton::clicked, this, &CircleByPoints::circleByPoint);
+    connect(ui->m_okBtn, &QPushButton::clicked, this, &CircleByPoints::okBtn);
+    connect(ui->m_cancelBtn, &QPushButton::clicked, this, &CircleByPoints::cancelBtn);
 }
 
 CircleByPoints::~CircleByPoints()
@@ -87,20 +89,67 @@ CircleParams calculateCircleParams(const QVector<QVector3D>& points) {
 
 
 
-void CircleByPoints::circleByPoint()
+void CircleByPoints::circleByPoint(QMap<int, QString> pointName)
 {
-    QVector3D center;
-    center[0] = ui->m_xCoordinate->text().toFloat();
-    center[1] = ui->m_yCoordinate->text().toFloat();
-    center[2] = ui->m_zCoordinate->text().toFloat();
+    ui->m_point1->clear();
+    ui->m_point2->clear();
+    ui->m_point3->clear();
 
-    QVector3D normale;
-    if (ui->m_xNormale->isChecked())
-        normale = QVector3D(1, 0, 0);
-    else if (ui->m_yNormale->isChecked())
-        normale = QVector3D(0, 1, 0);
-    else if (ui->m_zNormale->isChecked())
-        normale = QVector3D(0, 0, 1);
+    for (auto it = pointName.constBegin(); it != pointName.constEnd(); ++it) {
+        if (!it.value().isEmpty()) {
+            ui->m_point1->addItem(it.value(), QVariant(it.key()));
+            ui->m_point2->addItem(it.value(), QVariant(it.key()));
+            ui->m_point3->addItem(it.value(), QVariant(it.key()));
+        }
+    }
 
-    emit circleParams(ui->m_nameEdit->text(), center, normale, ui->m_circleRadius->text().toFloat());
+
+
+    connect(ui->m_point1, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &CircleByPoints::currentFirstPoint);
+
+    connect(ui->m_point2, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &CircleByPoints::currentSecondPoint);
+    connect(ui->m_point3, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &CircleByPoints::currentThreedPoint);
+}
+
+void CircleByPoints::currentFirstPoint(int index)
+{
+    firstPoint = ui->m_point1->itemData(index).toInt();
+}
+
+void CircleByPoints::currentSecondPoint(int index)
+{
+    secondePoint = ui->m_point2->itemData(index).toInt();
+}
+
+void CircleByPoints::currentThreedPoint(int index)
+{
+    threedPoint = ui->m_point3->itemData(index).toInt();
+}
+
+void CircleByPoints::okBtn()
+{
+    if(ui->m_radius->text().toFloat() <=0)
+    {
+        QMessageBox::critical(
+            nullptr,
+            "Ошибка",
+            "Неверное значение радиуса.",
+            QMessageBox::Ok
+            );
+        return;
+    }
+    else
+    {
+        m_indexPoint = {firstPoint, secondePoint, threedPoint};
+        emit sendPoint(m_indexPoint, ui->m_radius->text().toFloat());
+        close();
+    }
+}
+
+void CircleByPoints::cancelBtn()
+{
+    close();
 }

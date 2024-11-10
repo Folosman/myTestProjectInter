@@ -82,48 +82,39 @@
     <rect>
      <x>18</x>
      <y>147</y>
-     <width>132</width>
-     <height>77</height>
+     <width>153</width>
+     <height>79</height>
     </rect>
    </property>
    <property name="title">
     <string>Вектор нормали</string>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
-     <widget class="QRadioButton" name="m_xNormale">
-      <property name="maximumSize">
-       <size>
-        <width>30</width>
-        <height>16777215</height>
-       </size>
-      </property>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="3">
+     <widget class="QLineEdit" name="m_normaleY"/>
+    </item>
+    <item row="0" column="0">
+     <widget class="QLabel" name="label_6">
       <property name="text">
        <string>X</string>
       </property>
      </widget>
     </item>
-    <item>
-     <widget class="QRadioButton" name="m_yNormale">
-      <property name="maximumSize">
-       <size>
-        <width>30</width>
-        <height>16777215</height>
-       </size>
-      </property>
+    <item row="0" column="2">
+     <widget class="QLabel" name="label_7">
       <property name="text">
        <string>Y</string>
       </property>
      </widget>
     </item>
-    <item>
-     <widget class="QRadioButton" name="m_zNormale_2">
-      <property name="maximumSize">
-       <size>
-        <width>30</width>
-        <height>16777215</height>
-       </size>
-      </property>
+    <item row="0" column="5">
+     <widget class="QLineEdit" name="m_normaleZ"/>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLineEdit" name="m_normaleX"/>
+    </item>
+    <item row="0" column="4">
+     <widget class="QLabel" name="label_8">
       <property name="text">
        <string>Z</string>
       </property>

@@ -12,3 +12,4 @@ PointByCircle::~PointByCircle()
 {
     delete ui;
 }
+

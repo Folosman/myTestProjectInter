@@ -15,11 +15,24 @@ class CircleByPoints : public QWidget
 public:
     explicit CircleByPoints(QWidget *parent = nullptr);
     ~CircleByPoints();
-    void circleByPoint();
+    // void circleByPoint();
+    void currentFirstPoint(int);
+    void currentSecondPoint(int);
+    void currentThreedPoint(int);
+
+    void okBtn();
+    void cancelBtn();
+
 private:
     Ui::CircleByPoints *ui;
+    int firstPoint;
+    int secondePoint;
+    int threedPoint;
+    QVector<int> m_indexPoint;
 signals:
-    void circleParams(QString name, QVector3D coord, QVector3D normale, float radius);
+    void sendPoint(QVector<int> index, float radius);
+public slots:
+    void circleByPoint(QMap<int, QString> point);
 };
 
 #endif // CIRCLEBYPOINTS_H

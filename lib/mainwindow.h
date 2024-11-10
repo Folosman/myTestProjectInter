@@ -65,16 +65,28 @@ private:
     QMap<int, QVector3D> m_commandCircleCenter;
     QMap<int, QVector3D> m_commandPlace;
     QMap<int, float>     m_commandCircleRadius;
+    QMap<int, float>     m_commandCircleActualRadius;
     QMap<int, QString>   m_commandPointName;
     QMap<int, QString>   m_commandPlaceName;
     QMap<int, QString>   m_commandCircleName;
+    QMap<int, QVector3D> m_commandMoveVector;
+    QMap<int, QVector3D> m_commandActualNormales;
+
+    QMap<int, float>     m_pointErrors;
+    QMap<int, float>    m_radiusErrors;
+    QMap<int, QString>   m_errorName;
 
     QMap<int, bool>     m_pointChecker;
     QMap<int, bool>     m_placeChecker;
     QMap<int, bool>     m_circleChecker;
     QMap<int, bool>     m_moveChecker;
+    QMap<int, bool>     m_pointByCircleChecker;
+    QMap<int, bool>     m_pointErrorChecker;
+    QMap<int, bool>     m_circleErrorCheker;
+    QMap<int, bool>     m_pointByPlace;
 
     QMap<int, QVector<int>> m_dependence;
+    QMap<int, QListWidgetItem*> m_listItem;
 
     int m_commandCounter    = 1;
     int m_pointCounter      = 1;
@@ -82,6 +94,13 @@ private:
     int m_circleCounter     = 1;
     int m_locationCounter   = 1;
 
+    QListWidgetItem *m_editItem;
+    int m_editIndex = -1;
+    bool m_pointEdit = false;
+    bool m_placeEdit = false;
+    bool m_circleEdit = false;
+
+    float m_error = 0.15f;
 public:
     void commitBtn();
     void moveBtn();
@@ -99,19 +118,23 @@ public:
     void showContextMenu(const QPoint &pos);
     void editItem(QListWidgetItem *item);
     void deleteItem(QListWidgetItem *item);
+    void updateList();
 
+    void save();
+    void load();
 
 public slots:
     void commentSlot(const QString &text);
     void createPointSlot(const QString& name, const QVector3D& point, const QVector3D& normale);
-    void moveSlot(const QVector3D& moveVec);
-    void circleParams(QString name, QVector3D coord, QVector3D normale, float radius);
+    void moveSlot(const QVector3D& moveVec, int poinIndex);
+    void circleParams(QVector<int> index, float radius);
     void pointAndPlace(int pointIndex, int placeIndex);
     void placePoints(QVector<int> index);
 
 signals:
     void pointOnPlace(QMap<int, QString> point, QMap<int, QString> place);
     void sendPointInPlace(QMap<int, QString> point);
+    void sendPoint(QMap<int, QString> point);
 
 };
 #endif // MAINWINDOW_H

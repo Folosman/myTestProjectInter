@@ -20,7 +20,6 @@ void PlaceForm::pointData(const QMap<int, QString> pointName)
     ui->m_secondPoint->clear();
     ui->m_threedPoint->clear();
 
-    /*      Я честно не понимаю, почему и как это работает      */
     for (auto it = pointName.constBegin(); it != pointName.constEnd(); ++it) {
         if (!it.value().isEmpty()) {
             ui->m_firstPoint->addItem(it.value(), QVariant(it.key()));

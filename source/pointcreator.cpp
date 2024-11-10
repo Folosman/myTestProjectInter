@@ -20,13 +20,10 @@ void PointCreator::saveCoordinate() {
     QString name = ui->m_pointName->text();
 
     // Создаем вектор нормали на основе выбранной оси
-    QVector3D normale;
-    if (ui->m_xNormale->isChecked())
-        normale = QVector3D(1, 0, 0);
-    else if (ui->m_yNormale->isChecked())
-        normale = QVector3D(0, 1, 0);
-    else if (ui->m_zNormale_2->isChecked())
-        normale = QVector3D(0, 0, 1);
+    QVector3D normale(ui->m_normaleX->text().toFloat(),
+                      ui->m_normaleY->text().toFloat(),
+                      ui->m_normaleZ->text().toFloat());
+    normale.normalize();
 
     // Создаем вектор координат на основе введенных значений
     QVector3D tempVec(ui->m_xCoordinate->text().toFloat(),
