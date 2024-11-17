@@ -30,7 +30,7 @@ private:
     int threedPoint;
     QVector<int> m_indexPoint;
 signals:
-    void sendPoint(QVector<int> index, float radius);
+    void sendPoint(QVector<int> index);
 public slots:
     void circleByPoint(QMap<int, QString> point);
 };

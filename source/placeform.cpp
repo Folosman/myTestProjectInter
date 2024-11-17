@@ -28,7 +28,9 @@ void PlaceForm::pointData(const QMap<int, QString> pointName)
         }
     }
 
-
+    firstPoint = ui->m_firstPoint->itemData(0).toInt();
+    secondPoint = ui->m_secondPoint->itemData(0).toInt();
+    threedPoint = ui->m_threedPoint->itemData(0).toInt();
 
     connect(ui->m_firstPoint, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &PlaceForm::currentFirstPoint);
@@ -46,7 +48,7 @@ void PlaceForm::currentFirstPoint(int index)
 
 void PlaceForm::currentSecondePoint(int index)
 {
-    secondePoint = ui->m_secondPoint->itemData(index).toInt();
+    secondPoint = ui->m_secondPoint->itemData(index).toInt();
 }
 
 void PlaceForm::currentThreedPoint(int index)
@@ -56,7 +58,7 @@ void PlaceForm::currentThreedPoint(int index)
 
 void PlaceForm::okBtn()
 {
-    m_indexPoint = {firstPoint, secondePoint, threedPoint};
+    m_indexPoint = {firstPoint, secondPoint, threedPoint};
     emit sendPoint(m_indexPoint);
     close();
 }

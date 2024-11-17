@@ -24,7 +24,7 @@ void MoveClass::okBtn() {
                       ui->m_yCoordinate->text().toFloat(),
                       ui->m_zCoordinate->text().toFloat());
 
-    emit moveSignal(tempVec, point);
+    emit moveSignal(tempVec);
 
     ui->m_xCoordinate->clear();
     ui->m_yCoordinate->clear();
@@ -36,23 +36,12 @@ void MoveClass::okBtn() {
 
 void MoveClass::pointData(const QMap<int, QString> point)
 {
-    ui->m_pointBox->clear();
 
-    for (auto iterator = point.constBegin(); iterator != point.constEnd(); ++iterator) {
-        if (!iterator.value().isEmpty()) {
-            ui->m_pointBox->addItem(iterator.value(), QVariant(iterator.key()));
-        }
-    }
-
-
-
-    connect(ui->m_pointBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &MoveClass::currentPoint);
 }
 
 void MoveClass::currentPoint(int index)
 {
-    point = ui->m_pointBox->itemData(index).toInt();
+
 }
 
 void MoveClass::cancelBtn()

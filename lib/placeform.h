@@ -15,7 +15,7 @@ public:
     explicit PlaceForm(QWidget *parent = nullptr);
     ~PlaceForm();
     int firstPoint;
-    int secondePoint;
+    int secondPoint;
     int threedPoint;
 
     void currentFirstPoint(int index);

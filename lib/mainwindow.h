@@ -58,8 +58,8 @@ private:
             /*      Вы спросите, почему не структуры Никита?
                     А я вам отвечу, потому что я отсталый       */
 
-    QMap<int, QVector3D> m_commandCoords; // Карта для хранения ID команд и их координат
-    QMap<int, QVector3D> m_commandPoints;     // Карта для хранения точек с уникальными ID
+    QMap<int, QVector3D> m_commandCoords;
+    QMap<int, QVector3D> m_commandPoints;
     QMap<int, QVector3D> m_comandActualPoints;
     QMap<int, QVector3D> m_commandNormales;
     QMap<int, QVector3D> m_commandCircleCenter;
@@ -122,12 +122,13 @@ public:
 
     void save();
     void load();
+    void start();
 
 public slots:
     void commentSlot(const QString &text);
     void createPointSlot(const QString& name, const QVector3D& point, const QVector3D& normale);
-    void moveSlot(const QVector3D& moveVec, int poinIndex);
-    void circleParams(QVector<int> index, float radius);
+    void moveSlot(const QVector3D& moveVec);
+    void circleParams(QVector<int> index);
     void pointAndPlace(int pointIndex, int placeIndex);
     void placePoints(QVector<int> index);
 

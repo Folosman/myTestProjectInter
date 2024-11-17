@@ -17,7 +17,7 @@ public:
     void currentPoint(int index);
     int point;
 signals:
-    void moveSignal(const QVector3D& moveVector, int pointIndex);
+    void moveSignal(const QVector3D& moveVector);
 private:
     Ui::MoveClass *ui;
     void okBtn();
