@@ -24,7 +24,7 @@ public:
     void cancelBtn();
 
 signals:
-    void commentText(const QString &text);
+    void commentText(const QString &text, const bool &trash);
 };
 
 #endif // COMMENT_H

@@ -7,6 +7,7 @@
 #include "./lib/circlebypoints.h"
 #include "./lib/pointonplace.h"
 #include "./lib/placeform.h"
+#include "./lib/settingwidget.h"
 #include "ui_mainwindow.h"
 
 #include <QApplication>
@@ -46,6 +47,7 @@ private:
     CircleByPoints  m_circle;
     PointOnPlace    m_pointOnPlace;
     PlaceForm       m_placeForm;
+    SettingWidget   m_settingWidget;
 
     QMenu           m_contextMenu;
 
@@ -55,8 +57,12 @@ private:
 
 
 
-            /*      Вы спросите, почему не структуры Никита?
-                    А я вам отвечу, потому что я отсталый       */
+            /*      О, великий Бог Машины, что ведёт нас путём истинных алгоритмов,
+             *      услышь мои мольбы, ибо ныне я сознаю свою ошибку.
+             *      Я сотворил код несовершенный,
+             *      лишённый грации логики и благословения оптимизации
+             *      **минутка отсылки на вархамер**
+            */
 
     QMap<int, QVector3D> m_commandCoords;
     QMap<int, QVector3D> m_commandPoints;
@@ -69,6 +75,7 @@ private:
     QMap<int, QString>   m_commandPointName;
     QMap<int, QString>   m_commandPlaceName;
     QMap<int, QString>   m_commandCircleName;
+    QMap<int, QString>   m_comentString;
     QMap<int, QVector3D> m_commandMoveVector;
     QMap<int, QVector3D> m_commandActualNormales;
 
@@ -84,6 +91,8 @@ private:
     QMap<int, bool>     m_pointErrorChecker;
     QMap<int, bool>     m_circleErrorCheker;
     QMap<int, bool>     m_pointByPlace;
+    QMap<int, bool>     m_commentdBool;
+    QMap<int, bool>     m_commentChecker;
 
     QMap<int, QVector<int>> m_dependence;
     QMap<int, QListWidgetItem*> m_listItem;
@@ -123,14 +132,16 @@ public:
     void save();
     void load();
     void start();
+    void setting();
 
 public slots:
-    void commentSlot(const QString &text);
+    void commentSlot(const QString &text, const bool &trash);
     void createPointSlot(const QString& name, const QVector3D& point, const QVector3D& normale);
     void moveSlot(const QVector3D& moveVec);
     void circleParams(QVector<int> index);
     void pointAndPlace(int pointIndex, int placeIndex);
     void placePoints(QVector<int> index);
+    void errorSetter(int error);
 
 signals:
     void pointOnPlace(QMap<int, QString> point, QMap<int, QString> place);

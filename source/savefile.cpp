@@ -11,10 +11,7 @@ void SaveFile::save()
     QString defaultDir = "./save";
     QDir dir(defaultDir);
 
-    if(!dir.exists())
-    {
-        dir.mkdir(defaultDir);
-    }
+    dir.mkdir(defaultDir);
 
     if(file.open(QIODevice::WriteOnly | QIODevice::Text))
     {

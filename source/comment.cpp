@@ -23,7 +23,7 @@ Comment::~Comment()
 
 void Comment::acceptBtn()
 {
-    emit commentText(ui->m_commentLine->text());
+    emit commentText(ui->m_commentLine->text(), ui->m_trashCheck->isChecked());
     qDebug() << ui->m_commentLine->text();
     close();
 }

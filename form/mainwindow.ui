@@ -188,16 +188,16 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionOpen_File"/>
+    <addaction name="setting"/>
     <addaction name="actionLoad_File"/>
     <addaction name="actionSave_File"/>
    </widget>
    <addaction name="menuMenu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionOpen_File">
+  <action name="setting">
    <property name="text">
-    <string>Clear</string>
+    <string>Setting</string>
    </property>
   </action>
   <action name="actionLoad_File">
