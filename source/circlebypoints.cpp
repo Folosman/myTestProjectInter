@@ -1,6 +1,5 @@
 #include "./lib/circlebypoints.h"
 #include "ui_circlebypoints.h"
-#include "Eigen/Dense"
 #include "QMessageBox"
 CircleByPoints::CircleByPoints(QWidget *parent)
     : QWidget(parent)

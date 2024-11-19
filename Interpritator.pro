@@ -1,5 +1,4 @@
 QT       += core gui
-INCLUDEPATH += C:\Users\nemti\Downloads\eigen-3.4.0
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
@@ -9,6 +8,8 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    source/settingwidget.cpp \
+    source/savefile.cpp \
     source/placeform.cpp \
     source/pointbycircle.cpp \
     source/circlebypoints.cpp \
@@ -21,6 +22,7 @@ SOURCES += \
     source/pointonplace.cpp
 
 HEADERS += \
+    lib/settingwidget.h \
     lib/commandclass.h \
     lib/comment.h \
     lib/mainwindow.h \
@@ -29,7 +31,8 @@ HEADERS += \
     lib/pointcreator.h \
     lib/circlebypoints.h \
     lib/pointonplace.h \
-    lib/placeform.h
+    lib/placeform.h \
+    lib/savefile.h
 
 FORMS += \
     form/comment.ui \
@@ -39,7 +42,8 @@ FORMS += \
     form/circlebypoints.ui \
     form/pointbycircle.ui \
     form/pointonplace.ui \
-    form/placeform.ui
+    form/placeform.ui \
+    form/settingwidget.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
