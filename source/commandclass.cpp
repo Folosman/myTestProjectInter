@@ -9,11 +9,6 @@ CommandClass::CommandClass(QObject *parent)
     : QObject{parent}
 {}
 
-void CommandClass::movePoint(QVector3D move)
-{
-
-}
-
 QVector3D CommandClass::calculateCenter(const QVector<QVector3D>& points)
 {
     QVector3D center(0, 0, 0);

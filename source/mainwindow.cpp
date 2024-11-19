@@ -588,7 +588,9 @@ void MainWindow::moveSlot(const QVector3D& moveVector)
     int commandId = ++m_commandCounter;
 
     m_commandMoveVector[commandId]  = moveVector;
-    m_comandActualPoints[commandId] = moveVector ;
+    m_comandActualPoints[commandId] = moveVector + generateVector(-0.2, 0.2);
+    m_moveChecker[commandId] = true;
+    m_commandPoints[commandId] = {0,0,0};
 
     QString nominal = QString("(%1, %2, %3)")
                          .arg(moveVector.x())
@@ -601,7 +603,7 @@ void MainWindow::moveSlot(const QVector3D& moveVector)
     // Формируем текст команды
     QString commandText = QString("MOVE:\nNOMINAL: %1\nACTUAL: %2")
                               .arg(nominal)
-                              .arg(actual);
+                              .arg(nominal);
 
     // qDebug() << m_dependence[newCommandId];
 
