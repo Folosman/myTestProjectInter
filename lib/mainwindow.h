@@ -8,6 +8,7 @@
 #include "./lib/pointonplace.h"
 #include "./lib/placeform.h"
 #include "./lib/settingwidget.h"
+#include "lib/commandclass.h"
 #include "ui_mainwindow.h"
 
 #include <QApplication>
@@ -110,6 +111,7 @@ private:
     bool m_circleEdit = false;
 
     float m_error = 0.15f;
+    CommandClass commandClass;
 public:
     void commitBtn();
     void moveBtn();

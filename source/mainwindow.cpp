@@ -1,4 +1,5 @@
 #include "./lib/mainwindow.h"
+#include "lib/commandclass.h"
 #include "ui_mainwindow.h"
 #include <QTableWidget>
 #include <QTableWidgetItem>
@@ -285,16 +286,15 @@ void MainWindow::createPointSlot(const QString& name, const QVector3D& point, co
                         vectorOneActual.x() * vectorTwoActual.y() - vectorOneActual.y() * vectorTwoActual.x());
 
 
-                    for(int i = 0; i < vector.size(); i++)
-                    {
-                        middle += m_commandPoints[m_dependence[key].at(i)];
-                        middleActual += m_comandActualPoints[m_dependence[key].at(i)] + generateVector(-0.2, 0.2);
-                    }
+                    middle = commandClass.findCircumcenter(m_commandPoints[m_dependence[key].at(0)],
+                                                           m_commandPoints[m_dependence[key].at(1)],
+                                                           m_commandPoints[m_dependence[key].at(2)]);
+                    middleActual = commandClass.findCircumcenter(m_comandActualPoints[m_dependence[key].at(0)],
+                                                                 m_comandActualPoints[m_dependence[key].at(1)],
+                                                                 m_comandActualPoints[m_dependence[key].at(2)]);
 
                     normal.normalize();
                     normaleActual.normalize();
-                    middle /= (float)vector.size();
-                    middleActual /= (float)vector.size();
 
                     m_commandPoints[key]  = middle;
                     m_comandActualPoints[key] = middleActual;
@@ -637,9 +637,14 @@ void MainWindow::circleParams(QVector<int> index)
         QVector3D dirAC = QVector3D::crossProduct(normale, twoVector).normalized();
 
         float t = QVector3D::dotProduct(dirAC, midAB - midAC) / QVector3D::dotProduct(dirAC, dirAB);
-        QVector3D middle = (midAB + t * dirAB);
-
-        float radius = (m_commandPoints[index.at(0)] - middle).length() / 2.0f;
+        std::tuple<QVector3D, float> data = commandClass.calculateCircle3D(
+                                            m_commandPoints[index.at(0)],
+                                            m_commandPoints[index.at(1)],
+                                            m_commandPoints[index.at(2)]);
+        // QVector3D middle = (midAB + t * dirAB);
+        QVector3D middle = std::get<0>(data);
+        float radius = std::get<1>(data);
+        // float radius = (m_commandPoints[index.at(0)] - middle).length() / 2.0f;
 
 
         /*
@@ -659,9 +664,18 @@ void MainWindow::circleParams(QVector<int> index)
 
         float tActual = QVector3D::dotProduct(dirActualAC, midActualAB - midActualAC)
                         / QVector3D::dotProduct(dirActualAC, dirActualAB);
-        QVector3D middleActual = (midActualAB + tActual * dirActualAB);
 
-        float radiusActual = (m_comandActualPoints[index.at(0)] - middleActual).length() /2.0f;
+        std::tuple<QVector3D, float> dataActual = commandClass.calculateCircle3D(
+            m_comandActualPoints[index.at(0)],
+            m_comandActualPoints[index.at(1)],
+            m_comandActualPoints[index.at(2)]);
+
+        QVector3D middleActual  = std::get<0>(dataActual);
+        float radiusActual = std::get<1>(dataActual);
+        // QVector3D middleActual = (midActualAB + tActual * dirActualAB);
+        // float radiusActual = (m_comandActualPoints[index.at(0)] - middleActual).length() /2.0f;
+
+
 
         // normale.normalize();
 
@@ -675,17 +689,17 @@ void MainWindow::circleParams(QVector<int> index)
 
         m_dependence[m_editIndex] = index;
         QString actual = QString("(%1, %2, %3) [%4, %5, %6]")
-                             .arg(middle[0] / 2)
-                             .arg(middle[1] / 2)
-                             .arg(middle[2] / 2)
+                             .arg(middle[0])
+                             .arg(middle[1])
+                             .arg(middle[2])
                              .arg(normale[0])
                              .arg(normale[1])
                              .arg(normale[2]);
 
         QString coordString = QString("(%1, %2, %3) [%4, %5, %6]")
-                                  .arg(middle[0] / 2)
-                                  .arg(middle[1] / 2)
-                                  .arg(middle[2] / 2)
+                                  .arg(middle[0])
+                                  .arg(middle[1])
+                                  .arg(middle[2])
                                   .arg(normale[0])
                                   .arg(normale[1])
                                   .arg(normale[2]);
@@ -765,11 +779,17 @@ void MainWindow::circleParams(QVector<int> index)
         QVector3D dirAC = QVector3D::crossProduct(normale, twoVector).normalized();
 
         float t = QVector3D::dotProduct(dirAC, midAB - midAC) / QVector3D::dotProduct(dirAC, dirAB);
-        QVector3D middle = (midAB + t * dirAB);
 
-        float radius = (m_commandPoints[index.at(0)] - middle).length() / 2.0f;
+        // QVector3D middle = (midAB + t * dirAB);
+        // float radius = (m_commandPoints[index.at(0)] - middle).length() / 2.0f;
 
+        std::tuple<QVector3D, float> data = commandClass.calculateCircle3D(
+            m_commandPoints[index.at(0)],
+            m_commandPoints[index.at(1)],
+            m_commandPoints[index.at(2)]);
 
+        QVector3D middle  = std::get<0>(data);
+        float radius = std::get<1>(data);
         /*
          *  Актуальные
          */
@@ -787,9 +807,18 @@ void MainWindow::circleParams(QVector<int> index)
 
         float tActual = QVector3D::dotProduct(dirActualAC, midActualAB - midActualAC)
                         / QVector3D::dotProduct(dirActualAC, dirActualAB);
-        QVector3D middleActual = (midActualAB + tActual * dirActualAB);
 
-        float radiusActual = (m_comandActualPoints[index.at(0)] - middleActual).length() /2.0f;
+        std::tuple<QVector3D, float> dataActual = commandClass.calculateCircle3D(
+            m_comandActualPoints[index.at(0)],
+            m_comandActualPoints[index.at(1)],
+            m_comandActualPoints[index.at(2)]);
+
+        QVector3D middleActual  = std::get<0>(dataActual);
+        float radiusActual = std::get<1>(dataActual);
+
+        // QVector3D middleActual = (midActualAB + tActual * dirActualAB);
+
+        // float radiusActual = (m_comandActualPoints[index.at(0)] - middleActual).length() /2.0f;
 
         // normale.normalize();
 
@@ -807,17 +836,17 @@ void MainWindow::circleParams(QVector<int> index)
         m_dependence[commandId] = index;
 
         QString actual = QString("(%1, %2, %3) [%4, %5, %6]")
-                             .arg(middle[0] / 2)
-                             .arg(middle[1] / 2)
-                             .arg(middle[2] / 2)
+                             .arg(middle[0])
+                             .arg(middle[1])
+                             .arg(middle[2] )
                              .arg(normale[0])
                              .arg(normale[1])
                              .arg(normale[2]);
 
         QString coordString = QString("(%1, %2, %3) [%4, %5, %6]")
-                                  .arg(middle[0] / 2)
-                                  .arg(middle[1] / 2)
-                                  .arg(middle[2] / 2)
+                                  .arg(middle[0])
+                                  .arg(middle[1])
+                                  .arg(middle[2])
                                   .arg(normale[0])
                                   .arg(normale[1])
                                   .arg(normale[2]);
@@ -870,16 +899,20 @@ void MainWindow::placePoints(QVector<int> index)
             vectorOneActual.z() * vectorTwoActual.x() - vectorOneActual.x() * vectorTwoActual.z(),
             vectorOneActual.x() * vectorTwoActual.y() - vectorOneActual.y() * vectorTwoActual.x());
 
-        for(int i = 0; i < m_dependence[m_editIndex].size(); i++)
-        {
-            middle += m_commandPoints[m_dependence[m_editIndex].at(i)];
-            middleActual += m_comandActualPoints[m_dependence[m_editIndex].at(i)];
-        }
+        // for(int i = 0; i < m_dependence[m_editIndex].size(); i++)
+        // {
+        //     middle += m_commandPoints[m_dependence[m_editIndex].at(i)];
+        //     middleActual += m_comandActualPoints[m_dependence[m_editIndex].at(i)];
+        // }
+        middle = commandClass.findCircumcenter(m_commandPoints[index.at(0)],
+                                               m_commandPoints[index.at(1)],
+                                               m_commandPoints[index.at(2)]);
+        middleActual = commandClass.findCircumcenter(m_comandActualPoints[index.at(0)],
+                                                     m_comandActualPoints[index.at(1)],
+                                                     m_comandActualPoints[index.at(2)]);
 
         normal.normalize();
         normaleActual.normalize();
-        middle /= (float)index.size();
-        middleActual /= (float)index.size();
 
         m_commandPoints[m_editIndex]  = middle;
         m_commandPlace[m_editIndex]   = middle;
@@ -945,16 +978,15 @@ void MainWindow::placePoints(QVector<int> index)
             vectorOneActual.z() * vectorTwoActual.x() - vectorOneActual.x() * vectorTwoActual.z(),
             vectorOneActual.x() * vectorTwoActual.y() - vectorOneActual.y() * vectorTwoActual.x());
 
-        for(int i = 0; i < index.size(); i++)
-        {
-            middle += m_commandPoints[index.at(i)];
-            middleActual += m_comandActualPoints[index.at(i)];
-        }
+        middle = commandClass.findCircumcenter(m_commandPoints[index.at(0)],
+                                               m_commandPoints[index.at(1)],
+                                               m_commandPoints[index.at(2)]);
+        middleActual = commandClass.findCircumcenter(m_comandActualPoints[index.at(0)],
+                                                     m_comandActualPoints[index.at(1)],
+                                                     m_comandActualPoints[index.at(2)]);
 
         normal.normalize();
         normaleActual.normalize();
-        middle /= (float)index.size();
-        middleActual /= (float)index.size();
 
         int commandId = ++m_commandCounter;
         m_commandPoints[commandId]  = middle;
@@ -1537,13 +1569,16 @@ void MainWindow::start()
         }
         if(m_commentChecker[key])
         {
-            QMessageBox msgBox;
-            msgBox.setWindowTitle("Комментарий");
-            msgBox.setText(m_comentString[key]);
-            msgBox.setStandardButtons(QMessageBox::Ok);
+            if(m_commentdBool[key])
+            {
+                QMessageBox msgBox;
+                msgBox.setWindowTitle("Комментарий");
+                msgBox.setText(m_comentString[key]);
+                msgBox.setStandardButtons(QMessageBox::Ok);
 
-            // Показываем диалог и останавливаем выполнение программы до нажатия OK
-            msgBox.exec();
+                // Показываем диалог и останавливаем выполнение программы до нажатия OK
+                msgBox.exec();
+            }
 
             QListWidgetItem* item = new QListWidgetItem(m_comentString[key]);
             ui->m_startList->addItem(item);
