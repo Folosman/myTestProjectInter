@@ -18,7 +18,7 @@ public:
     void okBtn();
     void cancelBtn();
 signals:
-    void errorValue(int);
+    void errorValue(float);
 private:
     Ui::SettingWidget *ui;
 };

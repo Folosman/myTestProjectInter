@@ -8,7 +8,8 @@
 #include "./lib/pointonplace.h"
 #include "./lib/placeform.h"
 #include "./lib/settingwidget.h"
-#include "lib/commandclass.h"
+#include "./lib/commandclass.h"
+#include "./lib/savefile.h"
 #include "ui_mainwindow.h"
 
 #include <QApplication>
@@ -112,6 +113,7 @@ private:
 
     float m_error = 0.15f;
     CommandClass commandClass;
+    SaveFile saveClass;
 public:
     void commitBtn();
     void moveBtn();
@@ -143,7 +145,7 @@ public slots:
     void circleParams(QVector<int> index);
     void pointAndPlace(int pointIndex, int placeIndex);
     void placePoints(QVector<int> index);
-    void errorSetter(int error);
+    void errorSetter(float error);
 
 signals:
     void pointOnPlace(QMap<int, QString> point, QMap<int, QString> place);

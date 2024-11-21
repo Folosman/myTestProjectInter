@@ -17,7 +17,7 @@ SettingWidget::~SettingWidget()
 
 void SettingWidget::okBtn()
 {
-    emit errorValue(ui->m_errorEdit->text().toInt());
+    emit errorValue(ui->m_errorEdit->text().toFloat());
     ui->m_errorEdit->clear();
     close();
 }

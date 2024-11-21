@@ -1,5 +1,7 @@
 #include "./lib/mainwindow.h"
 #include "lib/commandclass.h"
+#include "qjsondocument.h"
+#include "qjsonobject.h"
 #include "ui_mainwindow.h"
 #include <QTableWidget>
 #include <QTableWidgetItem>
@@ -90,7 +92,7 @@ void MainWindow::setting()
     m_settingWidget.show();
 }
 
-void MainWindow::errorSetter(int error)
+void MainWindow::errorSetter(float error)
 {
     m_error = error;
 }
@@ -183,7 +185,16 @@ void MainWindow::deleteItem(QListWidgetItem *item)
             }
         }
     }
-    m_dependence[currentId].clear();
+    m_dependence.remove(currentId);
+    m_commandPoints.remove(currentId);
+    m_comandActualPoints.remove(currentId);
+    if(!m_commandPointName[currentId].isEmpty())
+        m_commandPointName.remove(currentId);
+    if(!m_commandCircleName[currentId].isEmpty())
+        m_commandCircleName.remove(currentId);
+    if(!m_commandPlaceName[currentId].isEmpty())
+        m_commandPlaceName.remove(currentId);
+
     delete item;
 
 }
@@ -338,9 +349,10 @@ void MainWindow::createPointSlot(const QString& name, const QVector3D& point, co
                     QVector3D dirAC = QVector3D::crossProduct(normale, twoVector).normalized();
 
                     float t = QVector3D::dotProduct(dirAC, midAB - midAC) / QVector3D::dotProduct(dirAC, dirAB);
-                    QVector3D middle = (midAB + t * dirAB);
 
-                    float radius = (m_commandPoints[m_dependence[key].at(0)] - middle).length() / 2.0f;
+
+                    // QVector3D middle = (midAB + t * dirAB);
+                    // float radius = (m_commandPoints[m_dependence[key].at(0)] - middle).length() / 2.0f;
 
 
                     /*
@@ -360,9 +372,23 @@ void MainWindow::createPointSlot(const QString& name, const QVector3D& point, co
 
                     float tActual = QVector3D::dotProduct(dirActualAC, midActualAB - midActualAC)
                                     / QVector3D::dotProduct(dirActualAC, dirActualAB);
-                    QVector3D middleActual = (midActualAB + tActual * dirActualAB);
 
-                    float radiusActual = (m_comandActualPoints[m_dependence[key].at(0)] - middleActual).length() /2.0f;
+
+                    std::tuple<QVector3D, float> data = commandClass.calculateCircle3D(
+                        m_commandPoints[m_dependence[key].at(0)],
+                        m_commandPoints[m_dependence[key].at(1)],
+                        m_commandPoints[m_dependence[key].at(2)]);
+                    QVector3D middle = std::get<0>(data);
+                    float radius = std::get<1>(data);
+
+                    std::tuple<QVector3D, float> dataACtual = commandClass.calculateCircle3D(
+                        m_comandActualPoints[m_dependence[key].at(0)],
+                        m_comandActualPoints[m_dependence[key].at(1)],
+                        m_comandActualPoints[m_dependence[key].at(2)]);
+                    QVector3D middleActual = std::get<0>(dataACtual);
+                    float radiusActual = std::get<1>(dataACtual);
+                    // QVector3D middleActual = (midActualAB + tActual * dirActualAB);
+                    // float radiusActual = (m_comandActualPoints[m_dependence[key].at(0)] - middleActual).length() /2.0f;
 
                     // normale.normalize();
 
@@ -500,6 +526,7 @@ void MainWindow::pointAndPlace(int pointIndex, int placeIndex)
         m_commandActualNormales[m_editIndex] = m_commandActualNormales[placeIndex];
         m_dependence[m_editIndex] = QVector<int>(pointIndex, placeIndex);
         m_pointByPlace[m_editIndex] = true;
+        m_commandPointName[m_editIndex] = name;
 
         QString nominal = QString ("(%1, %2, %3 [%4, %5, %6]")
                               .arg(projection.x())
@@ -641,10 +668,10 @@ void MainWindow::circleParams(QVector<int> index)
                                             m_commandPoints[index.at(0)],
                                             m_commandPoints[index.at(1)],
                                             m_commandPoints[index.at(2)]);
-        // QVector3D middle = (midAB + t * dirAB);
         QVector3D middle = std::get<0>(data);
         float radius = std::get<1>(data);
         // float radius = (m_commandPoints[index.at(0)] - middle).length() / 2.0f;
+        // QVector3D middle = (midAB + t * dirAB);
 
 
         /*
@@ -1043,7 +1070,7 @@ void MainWindow::pointFromCircleBtn()
 
     int commandId = selectedItem->data(Qt::UserRole).toInt();
 
-    if (!m_commandPoints.contains(commandId))
+    if (!m_commandPoints.contains(commandId) || !(m_circleChecker[commandId]))
     {
         qWarning() << "Элемент с ID" << commandId << "не найден!";
         return;
@@ -1056,6 +1083,7 @@ void MainWindow::pointFromCircleBtn()
     QVector3D normale = m_commandNormales[commandId];
 
     int newCommandId = ++m_commandCounter;
+    m_commandPointName[newCommandId] = name;
     m_commandPoints[newCommandId] = coord;
     m_comandActualPoints[newCommandId] = m_comandActualPoints[commandId] ;
     m_commandNormales[newCommandId] = normale;
@@ -1098,7 +1126,10 @@ void MainWindow::pointOnPlaceBtn()
     m_pointOnPlace.show();
 }
 
-
+        /*
+         * Ошибка для точки
+         *
+         */
 void MainWindow::errorPointBtn()
 {
     QListWidgetItem* selectedItem = ui->m_commandList->currentItem();
@@ -1122,7 +1153,9 @@ void MainWindow::errorPointBtn()
                        .arg(m_locationCounter)
                        .arg(m_commandPointName[commandId]);
 
+    m_commandPoints[newCommandId] = {0,0,0};
     m_errorName[newCommandId] = name;
+    m_pointErrorChecker[newCommandId] = true;
     float error = sqrtf(pow(m_commandPoints[commandId].x() - m_comandActualPoints[commandId].x(), 2)
                         + pow(m_commandPoints[commandId].y() - m_comandActualPoints[commandId].y(), 2)
                         + pow(m_commandPoints[commandId].z() - m_comandActualPoints[commandId].z(), 2));
@@ -1171,8 +1204,9 @@ void MainWindow::errorCircleBtn()
 
     QString name = QString("LOCATION%1").arg(m_locationCounter);
 
+    m_commandPoints[newCommandId] = {0,0,0};
     m_errorName[newCommandId] = name;
-
+    m_circleErrorCheker[newCommandId] = true;
     float error = sqrtf(pow(m_commandPoints[commandId].x() - m_comandActualPoints[commandId].x(), 2)
                         + pow(m_commandPoints[commandId].y() - m_comandActualPoints[commandId].y(), 2)
                         + pow(m_commandPoints[commandId].z() - m_comandActualPoints[commandId].z(), 2));
@@ -1184,14 +1218,16 @@ void MainWindow::errorCircleBtn()
 
     m_pointErrors[newCommandId] = error;
     m_radiusErrors[newCommandId] = radiusError;
+    m_commandCircleRadius[newCommandId] = m_commandCircleRadius[commandId];
+    m_commandCircleActualRadius[newCommandId] = m_commandCircleActualRadius[commandId];
 
     QString errorString = QString("%1(%2)")
                               .arg(error)
                               .arg(m_error);
     QString errorRadius = QString("%1 / %2 (%3/%4)")
                               .arg(m_commandCircleRadius[commandId])
-                              .arg(m_commandCircleActualRadius[commandId])
-                              .arg(radiusError)
+                              .arg(m_commandCircleRadius[commandId])
+                              .arg(m_error)
                               .arg(m_error);
 
     QString command = QString("%1: \nPOSITION: %2\n RADIUS: %3")
@@ -1239,87 +1275,142 @@ void MainWindow::updateList()
 
 void MainWindow::save()
 {
-    QFile file("./save/save.txt");
-    QString defaultDir = "./save";
-    QDir dir(defaultDir);
 
-    if(!dir.exists())
-    {
-        dir.mkdir(defaultDir);
-    }
+    // QFile file("./save/save.txt");
+    QString filename = "./save/save.json";
+    // QDir dir(defaultDir);
 
-    if(file.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
-        QDataStream out(&file);
-        out.setVersion(QDataStream::Qt_5_15);
+    // if(!dir.exists())
+    // {
+    //     dir.mkdir(defaultDir);
+    // }
 
-        // Сохраняем QMap
-        out << m_commandCoords
-            << m_commandPoints
-            << m_comandActualPoints
-            << m_commandNormales
-            << m_commandCircleCenter
-            << m_commandPlace
-            << m_commandCircleRadius
-            << m_commandCircleActualRadius
-            << m_commandPointName
-            << m_commandPlaceName
-            << m_commandCircleName
-            << m_commandMoveVector
-            << m_commandActualNormales
-            << m_pointErrors
-            << m_radiusErrors
-            << m_errorName
-            << m_pointChecker
-            << m_placeChecker
-            << m_circleChecker
-            << m_moveChecker
-            << m_pointByCircleChecker
-            << m_pointErrorChecker
-            << m_circleErrorCheker
-            << m_pointByPlace
-            << m_dependence;
+    // if(file.open(QIODevice::WriteOnly | QIODevice::Text))
+    // {
+    //     QDataStream out(&file);
+    //     out.setVersion(QDataStream::Qt_5_15);
 
-        file.close();
-    }
+    //     // Сохраняем QMap
+        saveClass.saveData(filename,
+                   m_commandCoords,
+                   m_commandPoints,
+                   m_comandActualPoints,
+                   m_commandNormales,
+                   m_commandCircleCenter,
+                   m_commandPlace,
+                   m_commandCircleRadius,
+                   m_commandCircleActualRadius,
+                   m_commandPointName,
+                   m_commandPlaceName,
+                   m_commandCircleName,
+                   m_comentString,
+                   m_commandMoveVector,
+                   m_commandActualNormales,
+                    m_pointErrors,
+                    m_radiusErrors,
+                   m_errorName,
+                   m_pointChecker,
+                   m_placeChecker,
+                   m_circleChecker,
+                   m_moveChecker,
+                   m_pointByCircleChecker,
+                   m_pointErrorChecker,
+                   m_circleErrorCheker,
+                   m_pointByPlace,
+                   m_commentdBool,
+                   m_commentChecker,
+                   m_dependence);
+
+    //     file.close();
+    // }
 }
+
+
+
+
 
 void MainWindow::load()
 {
-    QFile file("./save/save.txt");
+    QFile file("./save/save.json");
     if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << "Error open saveFile";
         return;
     }
 
     QDataStream in(&file);
     in.setVersion(QDataStream::Qt_5_15);
 
-    // Загружаем QMap
-    in >> m_commandCoords
-        >> m_commandPoints
-        >> m_comandActualPoints
-        >> m_commandNormales
-        >> m_commandCircleCenter
-        >> m_commandPlace
-        >> m_commandCircleRadius
-        >> m_commandCircleActualRadius
-        >> m_commandPointName
-        >> m_commandPlaceName
-        >> m_commandCircleName
-        >> m_commandMoveVector
-        >> m_commandActualNormales
-        >> m_pointErrors
-        >> m_radiusErrors
-        >> m_errorName
-        >> m_pointChecker
-        >> m_placeChecker
-        >> m_circleChecker
-        >> m_moveChecker
-        >> m_pointByCircleChecker
-        >> m_pointErrorChecker
-        >> m_circleErrorCheker
-        >> m_pointByPlace
-        >> m_dependence;
+    m_commandCoords.clear();
+    m_commandPoints.clear();
+    m_comandActualPoints.clear();
+    m_commandNormales.clear();
+    m_commandCircleCenter.clear();
+    m_commandPlace.clear();
+    m_commandCircleRadius.clear();
+    m_commandCircleActualRadius.clear();
+    m_commandPointName.clear();
+    m_commandPlaceName.clear();
+    m_commandCircleName.clear();
+    m_commandMoveVector.clear();
+    m_commandActualNormales.clear();
+    m_pointErrors.clear();
+    m_radiusErrors.clear();
+    m_errorName.clear();
+    m_pointChecker.clear();
+    m_placeChecker.clear();
+    m_circleChecker.clear();
+    m_moveChecker.clear();
+    m_pointByCircleChecker.clear();
+    m_pointErrorChecker.clear();
+    m_circleErrorCheker.clear();
+    m_pointByPlace.clear();
+    m_dependence.clear();
+
+    // QFile file(filename);
+    // if (!file.open(QIODevice::ReadOnly)) {
+    //     qWarning("Couldn't open file for loading.");
+    //     return;
+    // }
+
+    QByteArray data = file.readAll();
+    file.close();
+
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    QJsonObject root = doc.object();
+
+    // Загружаем данные
+    saveClass.loadVector3DMap(root, "CommandCoords", m_commandCoords);
+    saveClass.loadVector3DMap(root, "CommandPoints", m_commandPoints);
+    saveClass.loadVector3DMap(root, "ComandActualPoints", m_comandActualPoints);
+    saveClass.loadVector3DMap(root, "CommandNormales", m_commandNormales);
+    saveClass.loadVector3DMap(root, "CommandCircleCenter", m_commandCircleCenter);
+    saveClass.loadVector3DMap(root, "CommandPlace", m_commandPlace);
+    saveClass.loadVector3DMap(root, "CommandMoveVector", m_commandMoveVector);
+    saveClass.loadVector3DMap(root, "CommandActualNormales", m_commandActualNormales);
+
+    saveClass.loadFloatMap(root, "CommandCircleRadius", m_commandCircleRadius);
+    saveClass.loadFloatMap(root, "CommandCircleActualRadius", m_commandCircleActualRadius);
+    saveClass.loadFloatMap(root, "PointErrors", m_pointErrors);
+    saveClass.loadFloatMap(root, "RadiusErrors", m_radiusErrors);
+
+    saveClass.loadStringMap(root, "CommandPointName", m_commandPointName);
+    saveClass.loadStringMap(root, "CommandPlaceName", m_commandPlaceName);
+    saveClass.loadStringMap(root, "CommandCircleName", m_commandCircleName);
+    saveClass.loadStringMap(root, "ComentString", m_comentString);
+    saveClass.loadStringMap(root, "ErrorName", m_errorName);
+
+    saveClass.loadBoolMap(root, "PointChecker", m_pointChecker);
+    saveClass.loadBoolMap(root, "PlaceChecker", m_placeChecker);
+    saveClass.loadBoolMap(root, "CircleChecker", m_circleChecker);
+    saveClass.loadBoolMap(root, "MoveChecker", m_moveChecker);
+    saveClass.loadBoolMap(root, "PointByCircleChecker", m_pointByCircleChecker);
+    saveClass.loadBoolMap(root, "PointErrorChecker", m_pointErrorChecker);
+    saveClass.loadBoolMap(root, "CircleErrorCheker", m_circleErrorCheker);
+    saveClass.loadBoolMap(root, "PointByPlace", m_pointByPlace);
+    saveClass.loadBoolMap(root, "CommentdBool", m_commentdBool);
+    saveClass.loadBoolMap(root, "CommentChecker", m_commentChecker);
+
+    saveClass.loadVectorIntMap(root, "Dependence", m_dependence);
 
 
     for(auto it = m_commandPoints.constBegin(); it != m_commandPoints.constEnd(); ++it)
@@ -1396,17 +1487,17 @@ void MainWindow::load()
         if(m_circleChecker[key])
         {
             QString coordString = QString("(%1, %2, %3) [%4, %5, %6]")
-                                    .arg(m_commandPoints[key].x() / 2)
-                                    .arg(m_commandPoints[key].y() / 2)
-                                    .arg(m_commandPoints[key].z() / 2)
+                                    .arg(m_commandPoints[key].x())
+                                    .arg(m_commandPoints[key].y())
+                                    .arg(m_commandPoints[key].z())
                                     .arg(m_commandNormales[key].x())
                                     .arg(m_commandNormales[key].y())
                                     .arg(m_commandNormales[key].z());
 
             QString actual = QString("(%1, %2, %3) [%4, %5, %6]")
-                                      .arg(m_commandPoints[key].x() / 2)
-                                      .arg(m_commandPoints[key].y() / 2)
-                                      .arg(m_commandPoints[key].z() / 2)
+                                      .arg(m_commandPoints[key].x())
+                                      .arg(m_commandPoints[key].y())
+                                      .arg(m_commandPoints[key].z())
                                       .arg(m_commandNormales[key].x())
                                       .arg(m_commandNormales[key].y())
                                       .arg(m_commandNormales[key].z());
@@ -1419,6 +1510,44 @@ void MainWindow::load()
                                   .arg(actual);
             QListWidgetItem* item = new QListWidgetItem(command);
             item->setData(Qt::UserRole, key); // ID команды в элементе списка
+            ui->m_commandList->addItem(item);
+        }
+        if(m_pointErrorChecker[key])
+        {
+            QString errorString = QString("%1 (%2)")
+            .arg(m_pointErrors[key])
+                .arg(m_error);
+            QString command = QString("%1:\n POSITION: %2")
+                                  .arg(m_errorName[key])
+                                  .arg(errorString);
+
+            QListWidgetItem* item = new QListWidgetItem(command);
+
+            ui->m_commandList->addItem(item);
+        }
+        if(m_circleErrorCheker[key])
+        {
+            QString errorString = QString("%1(%2)")
+            .arg(m_pointErrors[key])
+                .arg(m_error);
+            QString errorRadius = QString("%1 / %2 (%3/%4)")
+                                      .arg(m_commandCircleRadius[key])
+                                      .arg(m_commandCircleActualRadius[key])
+                                      .arg(m_radiusErrors[key])
+                                      .arg(m_error);
+
+            QString command = QString("%1: \nPOSITION: %2\n RADIUS: %3")
+                                  .arg(m_errorName[key])
+                                  .arg(errorString)
+                                  .arg(errorRadius);
+
+            QListWidgetItem* item = new QListWidgetItem(command);
+
+            ui->m_commandList->addItem(item);
+        }
+        if(m_commentChecker[key])
+        {
+            QListWidgetItem* item = new QListWidgetItem(m_comentString[key]);
             ui->m_commandList->addItem(item);
         }
     }
@@ -1503,17 +1632,17 @@ void MainWindow::start()
         if(m_circleChecker[key])
         {
             QString coordString = QString("(%1, %2, %3) [%4, %5, %6]")
-            .arg(m_commandPoints[key].x() / 2)
-                .arg(m_commandPoints[key].y() / 2)
-                .arg(m_commandPoints[key].z() / 2)
+            .arg(m_commandPoints[key].x())
+                .arg(m_commandPoints[key].y())
+                .arg(m_commandPoints[key].z())
                 .arg(m_commandNormales[key].x())
                 .arg(m_commandNormales[key].y())
                 .arg(m_commandNormales[key].z());
 
             QString actual = QString("(%1, %2, %3) [%4, %5, %6]")
-                                 .arg(m_comandActualPoints[key].x() / 2)
-                                 .arg(m_comandActualPoints[key].y() / 2)
-                                 .arg(m_comandActualPoints[key].z() / 2)
+                                 .arg(m_comandActualPoints[key].x())
+                                 .arg(m_comandActualPoints[key].y())
+                                 .arg(m_comandActualPoints[key].z())
                                  .arg(m_commandActualNormales[key].x())
                                  .arg(m_commandActualNormales[key].y())
                                  .arg(m_commandActualNormales[key].z());
@@ -1547,7 +1676,7 @@ void MainWindow::start()
         if(m_circleErrorCheker[key])
         {
             QString errorString = QString("%1(%2)")
-                                       .arg(m_pointErrorChecker[key])
+                                       .arg(m_pointErrors[key])
                                        .arg(m_error);
             QString errorRadius = QString("%1 / %2 (%3/%4)")
                                       .arg(m_commandCircleRadius[key])
