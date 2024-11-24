@@ -231,7 +231,11 @@ void MainWindow::createPointSlot(const QString& name, const QVector3D& point, co
     QString tempName = name;
     if(m_pointEdit)
     {
-        tempName = m_commandPointName[m_editIndex];
+        QString oldName = m_commandPointName[m_editIndex];
+        if(name.isEmpty())
+            tempName = m_commandPointName[m_editIndex];
+        else
+            tempName = name;
         m_commandPoints[m_editIndex] = point;
         m_comandActualPoints[m_editIndex] = point + generateVector(-0.02, 0.02);
         m_commandNormales[m_editIndex] = normale;
@@ -313,6 +317,9 @@ void MainWindow::createPointSlot(const QString& name, const QVector3D& point, co
                     // m_commandPlaceName[key] = name;
                     // m_dependence[m_editIndex]     = index;
                     // m_placeChecker[m_editIndex]   = true;
+
+                    m_commandPlaceName[key].replace(oldName, tempName);
+
                     QString actual = QString("(%1, %2, %3) [%4, %5, %6]")
                                               .arg(middle[0])
                                               .arg(middle[1])
@@ -337,6 +344,7 @@ void MainWindow::createPointSlot(const QString& name, const QVector3D& point, co
                 };
                 if ((element == m_editIndex) && m_circleChecker[key])
                 {
+                    qDebug() << "SDSD";
                     QVector3D oneVector = m_commandPoints[m_dependence[key].at(1)] - m_commandPoints[m_dependence[key].at(0)];
                     QVector3D twoVector = m_commandPoints[m_dependence[key].at(2)] - m_commandPoints[m_dependence[key].at(0)];
                     QVector3D normale = QVector3D::crossProduct(oneVector, twoVector).normalized();
@@ -401,20 +409,22 @@ void MainWindow::createPointSlot(const QString& name, const QVector3D& point, co
                     m_commandCircleActualRadius[key] = radiusActual;
 
                     QString actual = QString("(%1, %2, %3) [%4, %5, %6]")
-                                         .arg(m_commandCircleCenter[key].x() / 2)
-                                         .arg(m_commandCircleCenter[key].y() / 2)
-                                         .arg(m_commandCircleCenter[key].z() / 2)
+                                         .arg(m_commandCircleCenter[key].x())
+                                         .arg(m_commandCircleCenter[key].y())
+                                         .arg(m_commandCircleCenter[key].z())
                                          .arg(m_commandNormales[key].x())
                                          .arg(m_commandNormales[key].y())
                                          .arg(m_commandNormales[key].z());
 
                     QString coordString = QString("(%1, %2, %3) [%4, %5, %6]")
-                                              .arg(m_commandCircleCenter[key].x() / 2)
-                                              .arg(m_commandCircleCenter[key].y() / 2)
-                                              .arg(m_commandCircleCenter[key].z() / 2)
+                                              .arg(m_commandCircleCenter[key].x())
+                                              .arg(m_commandCircleCenter[key].y())
+                                              .arg(m_commandCircleCenter[key].z())
                                               .arg(m_commandNormales[key].x())
                                               .arg(m_commandNormales[key].y())
                                               .arg(m_commandNormales[key].z());
+
+                    m_commandCircleName[key].replace(oldName, tempName);
 
                     QString command = QString("%1:\nPOSITION: %2\nACTUAL: %3\nRADIUS: %4 (%5)")
                                           .arg(m_commandCircleName[key])
@@ -423,12 +433,54 @@ void MainWindow::createPointSlot(const QString& name, const QVector3D& point, co
                                           .arg(QString::number(radius))
                                           .arg(QString::number(radius));
                     m_listItem[key]->setText(command);
+
+
+                    for (auto it = m_dependence.constBegin(); it != m_dependence.constEnd(); ++it)
+                    {
+                        int Newkey = it.key();
+                        const QVector<int>& vector = it.value();
+
+                        for (int element : vector)
+                        {
+                            if ((element == key) && m_pointByCircleChecker[Newkey])
+                            {
+
+                                QVector3D coord = m_commandPoints[element];
+                                QVector3D normale = m_commandNormales[element];
+
+                                m_commandPoints[Newkey] = coord;
+                                m_comandActualPoints[Newkey] = coord;
+                                m_commandNormales[Newkey] = normale;
+
+                                QString nominal = QString("(%1, %2, %3) [%4, %5, %6]")
+                                                      .arg(coord[0])
+                                                      .arg(coord[1])
+                                                      .arg(coord[2])
+                                                      .arg(normale[0])
+                                                      .arg(normale[1])
+                                                      .arg(normale[2]);
+
+                                QString actual = QString("(%1, %2, %3) [%4, %5, %6]")
+                                                     .arg(m_commandPoints[element].x())
+                                                     .arg(m_commandPoints[element].y())
+                                                     .arg(m_commandPoints[element].z())
+                                                     .arg(normale[0])
+                                                     .arg(normale[1])
+                                                     .arg(normale[2]);
+
+                                QString command = QString("%1:\nNOMINAL: %2\nACTUAL: %3")
+                                                      .arg(m_commandPointName[Newkey])
+                                                      .arg(nominal)
+                                                      .arg(actual);
+                                m_listItem[Newkey]->setText(command);
+                            }
+                        }
+                    }
                 };
                 if ((element == m_editIndex) && m_pointErrorChecker[key])
                 {
-                    QString name = m_errorName[key];
 
-                    m_errorName[key] = name;
+                    m_errorName[key].replace(oldName, tempName);
                     float error = sqrtf(pow(m_commandPoints[element].x() - m_comandActualPoints[element].x(), 2)
                                         + pow(m_commandPoints[element].y() - m_comandActualPoints[element].y(), 2)
                                         + pow(m_commandPoints[element].z() - m_comandActualPoints[element].z(), 2));
@@ -441,7 +493,7 @@ void MainWindow::createPointSlot(const QString& name, const QVector3D& point, co
                                               .arg(error)
                                               .arg(m_error);
                     QString command = QString("%1:\n ERROR: %2")
-                                          .arg(name)
+                                          .arg(m_errorName[key])
                                           .arg(errorString);
                     m_listItem[key]->setText(command);
                 };
@@ -510,14 +562,23 @@ void MainWindow::pointAndPlace(int pointIndex, int placeIndex)
     if(m_placeEdit)
     {
         QString name = QString("%1").arg(m_commandPointName[m_editIndex]);
-        QVector3D vecToPoint = m_commandPoints[pointIndex] - m_commandPlace[placeIndex];
-        QVector3D vecToPointActual = m_comandActualPoints[pointIndex] - m_commandPlace[placeIndex];
-        double distance = QVector3D::dotProduct(vecToPoint, m_commandNormales[placeIndex]);
-        double distanceActua = QVector3D::dotProduct(vecToPointActual, m_commandActualNormales[placeIndex]);
+        // QVector3D vecToPoint = m_commandPoints[pointIndex] - m_commandPlace[placeIndex];
+        // QVector3D vecToPointActual = m_comandActualPoints[pointIndex] - m_commandPlace[placeIndex];
+        // double distance = QVector3D::dotProduct(vecToPoint, m_commandNormales[placeIndex]);
+        // double distanceActua = QVector3D::dotProduct(vecToPointActual, m_commandActualNormales[placeIndex]);
 
-        QVector3D projection = m_commandPoints[pointIndex] - distance *  m_commandNormales[placeIndex];
-        QVector3D projectionActual = m_comandActualPoints[pointIndex] - distanceActua *  m_commandActualNormales[placeIndex];
+        // QVector3D projection = m_commandPoints[pointIndex] - distance *  m_commandNormales[placeIndex];
+        // QVector3D projectionActual = m_comandActualPoints[pointIndex] - distanceActua *  m_commandActualNormales[placeIndex];
 
+        QVector3D vectorPoint = m_commandPoints[pointIndex] - m_commandPlace[placeIndex];
+        QVector3D vectorNormale = m_commandNormales[placeIndex].normalized();
+        float d = QVector3D::dotProduct(vectorPoint, vectorNormale);
+        QVector3D projection = m_commandPoints[pointIndex] - d * vectorNormale;
+
+        QVector3D vectorPointActual = m_comandActualPoints[pointIndex] - m_comandActualPoints[placeIndex];
+        QVector3D vectorNormaleActual = m_commandActualNormales[placeIndex].normalized();
+        float dActual = QVector3D::dotProduct(vectorPointActual, vectorNormaleActual);
+        QVector3D projectionActual = m_comandActualPoints[pointIndex] - dActual * vectorNormaleActual;
 
         // Сохраняем точку и нормаль в QMap
         m_commandPoints[m_editIndex] = projection;
@@ -555,14 +616,24 @@ void MainWindow::pointAndPlace(int pointIndex, int placeIndex)
     {
         QString name = QString("POINT%1").arg(m_pointCounter);
 
-        QVector3D vecToPoint = m_commandPoints[pointIndex] - m_commandPlace[placeIndex];
-        QVector3D vecToPointActual = m_comandActualPoints[pointIndex] - m_commandPlace[placeIndex];
+        // QVector3D vecToPoint = m_commandPoints[pointIndex] - m_commandPlace[placeIndex];
+        // QVector3D vecToPointActual = m_comandActualPoints[pointIndex] - m_commandPlace[placeIndex];
 
-        double distance = QVector3D::dotProduct(vecToPoint, m_commandNormales[placeIndex]);
-        double distanceActual = QVector3D::dotProduct(vecToPointActual, m_commandActualNormales[placeIndex]);
+        // double distance = QVector3D::dotProduct(vecToPoint, m_commandNormales[placeIndex]);
+        // double distanceActual = QVector3D::dotProduct(vecToPointActual, m_commandActualNormales[placeIndex]);
 
-        QVector3D projection = m_comandActualPoints[pointIndex] - distance *  m_commandNormales[placeIndex];
-        QVector3D projectionActual = m_comandActualPoints[pointIndex] - distanceActual *  m_commandActualNormales[placeIndex];
+        // QVector3D projection = m_comandActualPoints[pointIndex] - distance *  m_commandNormales[placeIndex];
+        // QVector3D projectionActual = m_comandActualPoints[pointIndex] - distanceActual *  m_commandActualNormales[placeIndex];
+
+        QVector3D vectorPoint = m_commandPoints[pointIndex] - m_commandPlace[placeIndex];
+        QVector3D vectorNormale = m_commandNormales[placeIndex].normalized();
+        float d = QVector3D::dotProduct(vectorPoint, vectorNormale);
+        QVector3D projection = m_commandPoints[pointIndex] - d * vectorNormale;
+
+        QVector3D vectorPointActual = m_comandActualPoints[pointIndex] - m_comandActualPoints[placeIndex];
+        QVector3D vectorNormaleActual = m_commandActualNormales[placeIndex].normalized();
+        float dActual = QVector3D::dotProduct(vectorPointActual, vectorNormaleActual);
+        QVector3D projectionActual = m_comandActualPoints[pointIndex] - dActual * vectorNormaleActual;
 
         // Создаем уникальный ID для команды
         int commandId = ++m_commandCounter;
@@ -765,15 +836,15 @@ void MainWindow::circleParams(QVector<int> index)
                                           .arg(normale[1])
                                           .arg(normale[2]);
 
-                    QString actual = QString("(%1, %2, %3)")
-                                         .arg(m_comandActualPoints[element].x())
-                                         .arg(m_comandActualPoints[element].y())
-                                         .arg(m_comandActualPoints[element].z());
+                    // QString actual = QString("(%1, %2, %3)")
+                    //                      .arg(m_comandActualPoints[element].x())
+                    //                      .arg(m_comandActualPoints[element].y())
+                    //                      .arg(m_comandActualPoints[element].z());
 
                     QString command = QString("%1:\nNOMINAL: %2\nACTUAL: %3")
-                                          .arg(m_commandCircleName[key])
+                                          .arg(m_commandPointName[key])
                                           .arg(nominal)
-                                          .arg(actual);
+                                          .arg(nominal);
                     m_listItem[key]->setText(command);
                 }
             }
@@ -782,7 +853,6 @@ void MainWindow::circleParams(QVector<int> index)
     }
     else
     {
-
 
         QString tempName = QString("CIRCLE%1: %2 %3 %4")
                         .arg(m_circleCounter)
@@ -1090,7 +1160,7 @@ void MainWindow::pointFromCircleBtn()
     m_commandActualNormales[newCommandId] = m_commandActualNormales[commandId] ;
     m_pointChecker[newCommandId] = true;
     m_pointByCircleChecker[newCommandId] = true;
-    m_dependence[commandId].append(newCommandId);
+    m_dependence[newCommandId].append(commandId);
 
     QString nominal = QString("(%1, %2, %3) [%4, %5, %6]")
                               .arg(coord[0])
@@ -1101,9 +1171,9 @@ void MainWindow::pointFromCircleBtn()
                               .arg(normale[2]);
 
     QString actual = QString("(%1, %2, %3) [%4, %5, %6]")
-                         .arg(m_commandPoints[commandId].x())
-                         .arg(m_commandPoints[commandId].y())
-                         .arg(m_commandPoints[commandId].z())
+                         .arg(m_commandPoints[newCommandId].x())
+                         .arg(m_commandPoints[newCommandId].y())
+                         .arg(m_commandPoints[newCommandId].z())
                          .arg(m_commandNormales[newCommandId].x())
                          .arg(m_commandNormales[newCommandId].y())
                          .arg(m_commandNormales[newCommandId].z());
@@ -1116,7 +1186,7 @@ void MainWindow::pointFromCircleBtn()
     QListWidgetItem* item = new QListWidgetItem(command);
     item->setData(Qt::UserRole, newCommandId); // Сохраняем ID команды в элементе списка
     ui->m_commandList->addItem(item);
-    m_listItem[commandId] = item;
+    m_listItem[newCommandId] = item;
 }
 
 
@@ -1365,6 +1435,7 @@ void MainWindow::load()
     m_circleErrorCheker.clear();
     m_pointByPlace.clear();
     m_dependence.clear();
+    m_listItem.clear();
 
     // QFile file(filename);
     // if (!file.open(QIODevice::ReadOnly)) {
@@ -1439,6 +1510,7 @@ void MainWindow::load()
             QListWidgetItem* item = new QListWidgetItem(command);
             item->setData(Qt::UserRole, key); // ID команды в элементе списка
             ui->m_commandList->addItem(item);
+            m_listItem[key] = item;
         }
         if(m_placeChecker[key])
         {
@@ -1465,6 +1537,7 @@ void MainWindow::load()
             QListWidgetItem* item = new QListWidgetItem(command);
             item->setData(Qt::UserRole, key); // ID команды в элементе списка
             ui->m_commandList->addItem(item);
+            m_listItem[key] = item;
         }
         if(m_moveChecker[key])
         {
@@ -1483,6 +1556,7 @@ void MainWindow::load()
             QListWidgetItem* item = new QListWidgetItem(command);
             item->setData(Qt::UserRole, key); // ID команды в элементе списка
             ui->m_commandList->addItem(item);
+            m_listItem[key] = item;
         }
         if(m_circleChecker[key])
         {
@@ -1511,6 +1585,7 @@ void MainWindow::load()
             QListWidgetItem* item = new QListWidgetItem(command);
             item->setData(Qt::UserRole, key); // ID команды в элементе списка
             ui->m_commandList->addItem(item);
+            m_listItem[key] = item;
         }
         if(m_pointErrorChecker[key])
         {
@@ -1524,6 +1599,7 @@ void MainWindow::load()
             QListWidgetItem* item = new QListWidgetItem(command);
 
             ui->m_commandList->addItem(item);
+            m_listItem[key] = item;
         }
         if(m_circleErrorCheker[key])
         {
@@ -1549,6 +1625,7 @@ void MainWindow::load()
         {
             QListWidgetItem* item = new QListWidgetItem(m_comentString[key]);
             ui->m_commandList->addItem(item);
+            m_listItem[key] = item;
         }
     }
 
